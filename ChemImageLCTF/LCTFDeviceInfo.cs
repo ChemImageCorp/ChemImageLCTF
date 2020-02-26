@@ -1,4 +1,8 @@
-﻿using System;
+﻿// <copyright file="LCTFDeviceInfo.cs" company="ChemImage Corporation">
+// Copyright (c) ChemImage Corporation. All rights reserved.
+// </copyright>
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,8 +15,14 @@ namespace ChemImage.LCTF
 	/// </summary>
 	public class LCTFDeviceInfo
 	{
-		public String SerialNumber { get; internal set; }
+		/// <summary>
+		/// Gets the serial number of the LCTF.
+		/// </summary>
+		public string SerialNumber { get; internal set; }
+
+		/// <summary>
+		/// Gets the firmware version of the LCTF.
+		/// </summary>
 		public ushort FirmwareVersion { get; internal set; }
-		public uint FlashIds { get; internal set; }
-	};
+	}
 }

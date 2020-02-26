@@ -1,125 +1,112 @@
-﻿using LibUsbDotNet;
-using LibUsbDotNet.Main;
+﻿// <copyright file="LCTFDevice.cs" company="ChemImage Corporation">
+// Copyright (c) ChemImage Corporation. All rights reserved.
+// </copyright>
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
+using LibUsbDotNet;
+using LibUsbDotNet.Main;
 
 namespace ChemImage.LCTF
 {
-	public class LCTFDevice : IDisposable
+	/// <summary>
+	/// An LCTF device that acts as a bandpass filter at a specified wavelength.
+	/// </summary>
+	public partial class LCTFDevice : IDisposable
 	{
-		#region Events
+		private readonly UsbDevice usbDevice;
+		private readonly UsbEndpointReader interruptReader;
+
 		/// <summary>
-		/// Event for when the MCF is done tuning. 
-		/// When overdrive is on, this fires after the overdrive delay. 
-		/// With overdrive off, it fires as soon as channel voltages are set.
-		/// This event occurs for both lambda tuning and setting voltages.
-		/// <para>This event is called from multiple threads.</para>
+		/// Initializes a new instance of the <see cref="LCTFDevice"/> class.
 		/// </summary>
-		public event OnTuningDoneHandler OnTuningDone;
+		/// <param name="underlyingWinUsbDevice">The underlying <see cref="UsbDevice"/>.</param>
+		public LCTFDevice(UsbDevice underlyingWinUsbDevice)
+		{
+			if (underlyingWinUsbDevice == null)
+			{
+				throw new ArgumentNullException(nameof(underlyingWinUsbDevice));
+			}
+
+			this.usbDevice = underlyingWinUsbDevice;
+
+			this.InstanceId = underlyingWinUsbDevice.DevicePath;
+
+			this.DeviceInfo = this.GetDeviceInfo();
+
+			this.WavelengthMin = (int)(this.GetFloat((byte)CommandIndices.WavelengthMin) + 0.5f);
+			this.WavelengthMax = (int)(this.GetFloat((byte)CommandIndices.WavelengthMax) + 0.5f);
+			this.WavelengthStep = (int)(this.GetFloat((byte)CommandIndices.WavelengthStep) + 0.5f);
+
+			UsbDevice.UsbErrorEvent += this.UsbDevice_UsbErrorEvent;
+
+			// Set up reader for interrupts
+			this.interruptReader = this.usbDevice.OpenEndpointReader(ReadEndpointID.Ep02);
+			this.interruptReader.DataReceivedEnabled = true;
+			this.interruptReader.DataReceived += this.Reader_DataReceived;
+		}
 
 		/// <summary>
-		/// Event for when the MCF is done calibrating.
-		/// This happens after calibration when the MCF power cycles or a Calibrate command is given.
-		/// <para>This event is called from multiple threads.</para>
+		/// Finalizes an instance of the <see cref="LCTFDevice"/> class.
 		/// </summary>
-		public event OnCalibrationDoneHandler OnCalibrationDone;
+		~LCTFDevice()
+		{
+			this.usbDevice?.Close();
+		}
 
 		/// <summary>
-		/// Event for when the MCF changes states.
-		/// <para>This event is called from multiple threads.</para>
-		/// </summary>
-		public event OnStateChangedHandler OnStateChanged;
-
-		/// <summary>
-		/// Event for when the filter has an error. Nothing currently fires this.
-		/// </summary>
-		public event OnErrorHandler OnError;
-
-		/// <summary>
-		/// Event for when the filter was busy and couldn't handle a command. Usually due to trying to
-		/// tune or change voltage during Calibration or Tuning.
-		/// </summary>
-		public event OnBusyHandler OnBusy;
-		#endregion Events
-
-		private UsbDevice _usbDevice;
-		private UsbEndpointReader _interruptReader;
-
-		/// <summary>
-		/// The underlying USB DevicePath.
+		/// Gets the underlying USB DevicePath.
 		/// </summary>
 		public string InstanceId { get; private set; }
 
 		/// <summary>
-		/// Static information about the device.
+		/// Gets static information about the device.
 		/// </summary>
 		public LCTFDeviceInfo DeviceInfo { get; private set; }
 
+		/// <summary>
+		/// Gets the minimum wavelength the LCTF can tune to.
+		/// </summary>
 		public int WavelengthMin { get; private set; }
+
+		/// <summary>
+		/// Gets the maximum wavelength the LCTF can tune to.
+		/// </summary>
 		public int WavelengthMax { get; private set; }
+
+		/// <summary>
+		/// Gets the step size between tuneable wavelengths.
+		/// </summary>
 		public int WavelengthStep { get; private set; }
 
 		/// <summary>
 		/// Gets the current state of the LCTF.
 		/// </summary>
-		public LCTFState State 
+		public LCTFState State
 		{
 			get
 			{
-				return (LCTFState)GetByte((byte)CommandIndices.LCTFState);
+				return (LCTFState)this.GetByte((byte)CommandIndices.LCTFState);
 			}
 		}
 
 		/// <summary>
-		/// Creates an <see cref="LCTFDevice"/> from a LibUsb <see cref="UsbDevice"/> object.
+		/// Cleans up USB connections and disposes the object.
 		/// </summary>
-		/// <param name="underlyingWinUsbDevice">The <see cref="UsbDevice"/> for the LCTF.</param>
-		public LCTFDevice(UsbDevice underlyingWinUsbDevice)
+		public void Dispose()
 		{
-			_usbDevice = underlyingWinUsbDevice;
-
-			InstanceId = underlyingWinUsbDevice.DevicePath;
-
-			DeviceInfo = GetDeviceInfo();
-
-			this.WavelengthMin = (int)(GetFloat((byte)CommandIndices.WavelengthMin) + 0.5f);
-			this.WavelengthMax = (int)(GetFloat((byte)CommandIndices.WavelengthMax) + 0.5f);
-			this.WavelengthStep = (int)(GetFloat((byte)CommandIndices.WavelengthStep) + 0.5f);
-
-			UsbDevice.UsbErrorEvent += UsbDevice_UsbErrorEvent;
-
-			// Set up reader for interrupts
-			_interruptReader = _usbDevice.OpenEndpointReader(ReadEndpointID.Ep02);
-			_interruptReader.DataReceivedEnabled = true;
-			_interruptReader.DataReceived += Reader_DataReceived;
-		}
-
-		/// <summary>
-		/// Gets information about the device. Includes serial number and firmware version.
-		/// </summary>
-		public LCTFDeviceInfo GetDeviceInfo()
-		{
-			LCTFDeviceInfo deviceInfo = new LCTFDeviceInfo();
-
-			deviceInfo.SerialNumber = GetSerial();
-
-			var bcdVersion = (ushort)_usbDevice.Info.Descriptor.BcdDevice;
-			deviceInfo.FirmwareVersion = (ushort)((bcdVersion >> 8 & 0x00ff) * 100 + (bcdVersion & 0x00ff));
-
-			return deviceInfo;
+			this.interruptReader?.Abort();
+			this.interruptReader?.Dispose();
+			this.usbDevice?.Close();
 		}
 
 		/// <summary>
 		/// Gets the current internal temperature of the LCTF.
 		/// </summary>
-		/// <returns>The temperature in degrees C</returns>
+		/// <returns>The temperature in degrees C.</returns>
 		public float GetTemperature()
 		{
-			var temp = GetFloat((byte)CommandIndices.GetTemperature);
+			var temp = this.GetFloat((byte)CommandIndices.GetTemperature);
 			return temp;
 		}
 
@@ -135,7 +122,7 @@ namespace ChemImage.LCTF
 				throw new ArgumentException("Requested wavelength is outside the limits of the limit.", nameof(wavelength));
 			}
 
-			SetParameter((byte)CommandIndices.SetWavelength, wavelength);
+			this.SetParameter((byte)CommandIndices.SetWavelength, wavelength);
 		}
 
 		/// <summary>
@@ -195,10 +182,26 @@ namespace ChemImage.LCTF
 			{
 				this.OnError -= errorHandler;
 				this.OnTuningDone -= tuningDoneHandler;
-				tcs.TrySetException(new TimeoutException($"{nameof(WaitForTune)} timed out after {timeout}ms"));
+				tcs.TrySetException(new TimeoutException($"{nameof(this.WaitForTune)} timed out after {timeout}ms"));
 			});
 
 			return tcs.Task;
+		}
+
+		/// <summary>
+		/// Gets information about the device. Includes serial number and firmware version.
+		/// </summary>
+		/// <returns>An <see cref="LCTFDeviceInfo"/>.</returns>
+		private LCTFDeviceInfo GetDeviceInfo()
+		{
+			LCTFDeviceInfo deviceInfo = new LCTFDeviceInfo();
+
+			deviceInfo.SerialNumber = this.GetSerial();
+
+			var bcdVersion = (ushort)this.usbDevice.Info.Descriptor.BcdDevice;
+			deviceInfo.FirmwareVersion = (ushort)((((bcdVersion >> 8) & 0x00ff) * 100) + (bcdVersion & 0x00ff));
+
+			return deviceInfo;
 		}
 
 		private void Reader_DataReceived(object sender, EndpointDataEventArgs e)
@@ -209,28 +212,27 @@ namespace ChemImage.LCTF
 
 			Task.Run(() =>
 			{
-				//_logger.Debug(m => m($"{interrupt.Type}"));
-
+				// _logger.Debug(m => m($"{interrupt.Type}"));
 				switch (type)
 				{
 					case InterruptType.Error:
-						var onError = OnError;
+						var onError = this.OnError;
 						onError?.Invoke(state, wavelength);
 						break;
 					case InterruptType.TuningDone:
-						var onTuningDone = OnTuningDone;
+						var onTuningDone = this.OnTuningDone;
 						onTuningDone?.Invoke(wavelength);
 						break;
 					case InterruptType.CalibrationDone:
-						var onCalibrationDone = OnCalibrationDone;
+						var onCalibrationDone = this.OnCalibrationDone;
 						onCalibrationDone?.Invoke();
 						break;
 					case InterruptType.StateChanged:
-						var onStateChanged = OnStateChanged;
+						var onStateChanged = this.OnStateChanged;
 						onStateChanged?.Invoke(state, wavelength);
 						break;
 					case InterruptType.Busy:
-						var onBusy = OnBusy;
+						var onBusy = this.OnBusy;
 						onBusy?.Invoke(state, wavelength);
 						break;
 					default:
@@ -241,145 +243,12 @@ namespace ChemImage.LCTF
 
 		private void UsbDevice_UsbErrorEvent(object sender, UsbError e)
 		{
-			//_logger.Warn($"USB error: {e.Description}, code: {e.Win32ErrorNumber}, {e.Win32ErrorString}");
-		}
-
-		~LCTFDevice()
-		{
-			_usbDevice?.Close();
-		}
-
-		public void Dispose()
-		{
-			_interruptReader?.Abort();
-			_interruptReader?.Dispose();
-			_usbDevice?.Close();
+			// _logger.Warn($"USB error: {e.Description}, code: {e.Win32ErrorNumber}, {e.Win32ErrorString}");
 		}
 
 		private string GetSerial()
 		{
-			return _usbDevice.Info.SerialString;
-		}
-
-		internal void SetParameter(byte index, float value)
-		{
-			var usbPacket = NewSetPacket(index);
-
-			var buf = BitConverter.GetBytes(value);
-
-			usbPacket.Length = (short)buf.Length;
-
-			int transferred = 0;
-
-			ControlTransfer(ref usbPacket, buf, buf.Length, out transferred);
-		}
-
-		internal void SetParameter(byte index, bool value)
-		{
-			var usbPacket = NewSetPacket(index);
-			usbPacket.Value = Convert.ToInt16(value);
-
-			int transferred = 0;
-
-			ControlTransfer(ref usbPacket, null, 0, out transferred);
-		}
-
-		internal byte GetByte(byte index, byte value = 0)
-		{
-			var usbPacket = NewGetPacket(index);
-			usbPacket.Value = value;
-
-			byte[] returnValue = { 0x00 };
-
-			IntPtr unmanagedPointer = Marshal.AllocHGlobal(sizeof(byte));
-
-			int transferred = 0;
-
-			ControlTransfer(ref usbPacket, unmanagedPointer, sizeof(byte), out transferred);
-
-			Marshal.Copy(unmanagedPointer, returnValue, 0, 1);
-			Marshal.FreeHGlobal(unmanagedPointer);
-
-			return returnValue[0];
-		}
-
-		internal float GetFloat(byte index, byte value = 0)
-		{
-			var usbPacket = NewGetPacket(index);
-			usbPacket.Value = value;
-
-			float[] returnValue = { 0f };
-
-			IntPtr unmanagedPointer = Marshal.AllocHGlobal(sizeof(float));
-
-			int transferred = 0;
-
-			ControlTransfer(ref usbPacket, unmanagedPointer, sizeof(float), out transferred);
-
-			Marshal.Copy(unmanagedPointer, returnValue, 0, 1);
-			Marshal.FreeHGlobal(unmanagedPointer);
-
-			return returnValue[0];
-		}
-
-		internal static UsbSetupPacket NewGetPacket(short index)
-		{
-			return new UsbSetupPacket(0b11000000, 0x80, 0, index, 0);
-		}
-
-		internal static UsbSetupPacket NewSetPacket(short index)
-		{
-			return new UsbSetupPacket(0b1000000, 0x81, 0, index, 0);
-		}
-
-		internal void ControlTransfer(ref UsbSetupPacket usbPacket, object buffer, int length, out int transferred)
-		{
-			bool success = false;
-
-			try
-			{
-				success = _usbDevice.ControlTransfer(ref usbPacket, buffer, length, out transferred);
-
-				if (!success)
-				{
-					var errorNum = UsbDevice.LastErrorNumber;
-					var errorString = UsbDevice.LastErrorString;
-
-					throw new InvalidOperationException($"USB communication failed. Error number: {errorNum}, {errorString}");
-				}
-			}
-			catch (ObjectDisposedException)
-			{
-				throw new InvalidOperationException("USB communication failed.");
-			}
+			return this.usbDevice.Info.SerialString;
 		}
 	}
-
-	/// <summary>
-	/// Handler for tuning done event.
-	/// </summary>
-	/// <param name="wavelength">The wavelength that was tuned to.</param>
-	public delegate void OnTuningDoneHandler(int wavelength);
-
-	/// <summary>
-	/// Handler for calibration done event.
-	/// </summary>
-	public delegate void OnCalibrationDoneHandler();
-
-	/// <summary>
-	/// Handler for state changed event.
-	/// </summary>
-	/// <param name="status">The new McfState.</param>
-	/// <param name="tunedWavelength">The currently tuned wavelength.</param>
-	public delegate void OnStateChangedHandler(LCTFState status, int tunedWavelength);
-
-	/// <summary>
-	/// Handler for when the filter has an error.
-	/// </summary>
-	public delegate void OnErrorHandler(LCTFState status, int lastTunedWavelength);
-
-	/// <summary>
-	/// Handler for when the filter was busy and couldn't handle command.
-	/// </summary>
-	public delegate void OnBusyHandler(LCTFState status, int lastTunedWavelength);
 }

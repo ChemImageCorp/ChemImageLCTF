@@ -1,11 +1,13 @@
-﻿using LibUsbDotNet;
-using LibUsbDotNet.DeviceNotify;
-using LibUsbDotNet.Main;
+﻿// <copyright file="LCTFController.cs" company="ChemImage Corporation">
+// Copyright (c) ChemImage Corporation. All rights reserved.
+// </copyright>
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using LibUsbDotNet;
+using LibUsbDotNet.DeviceNotify;
+using LibUsbDotNet.Main;
 
 namespace ChemImage.LCTF
 {
@@ -22,42 +24,31 @@ namespace ChemImage.LCTF
 	/// <summary>
 	/// Singleton class which handles detecting and connecting to MCFs.
 	/// </summary>
-	public class McfController : IDisposable
+#pragma warning disable CA1063 // Implement IDisposable Correctly
+	public class LCTFController : IDisposable
+#pragma warning restore CA1063 // Implement IDisposable Correctly
 	{
-		#region Private Variables
+		private static readonly LCTFController PrivateInstance = new LCTFController();
 
-		private static readonly McfController instance = new McfController();
-
-		private IDeviceNotifier _usbDeviceNotifier;
-		private UsbDeviceFinder _usbFinder;
-
-		private Dictionary<UsbRegistry, LCTFDevice> _mcfs { get; } = new Dictionary<UsbRegistry, LCTFDevice>();
-
-		#endregion
-
-		#region Constructors
+		private IDeviceNotifier usbDeviceNotifier;
+		private UsbDeviceFinder usbFinder;
 
 		// Explicit static constructor to tell C# compiler
 		// not to mark type as beforefieldinit
-		static McfController()
+		static LCTFController()
 		{
-
 		}
 
-		private McfController()
+		private LCTFController()
 		{
-			_usbFinder = new UsbDeviceFinder(new Guid("{d67436ae-96c7-4da3-83c9-322c4ceb41f3}"));
-			_usbDeviceNotifier = DeviceNotifier.OpenDeviceNotifier();
-			_usbDeviceNotifier.OnDeviceNotify += OnDeviceNotify;
-			_usbDeviceNotifier.Enabled = true;
+			this.usbFinder = new UsbDeviceFinder(new Guid("{d67436ae-96c7-4da3-83c9-322c4ceb41f3}"));
+			this.usbDeviceNotifier = DeviceNotifier.OpenDeviceNotifier();
+			this.usbDeviceNotifier.OnDeviceNotify += this.OnDeviceNotify;
+			this.usbDeviceNotifier.Enabled = true;
 
-			UpdateAttachedDevices();
+			this.UpdateAttachedDevices();
 		}
 
-
-		#endregion
-
-		#region Properties
 		/// <summary>
 		/// Event for when an MCF is attached to the computer.
 		/// </summary>
@@ -69,97 +60,92 @@ namespace ChemImage.LCTF
 		public event OnMcfDetachedHandler OnMcfDetached;
 
 		/// <summary>
-		/// All of the currently attached MCFs.
+		/// Gets a singleton instance of <see cref="LCTFController"/>
+		/// This instance must be referenced first from the main thread.
+		/// If not, LibUSB can't set up correctly and events from Windows won't work. Dispose this instance when you're done with it.
 		/// </summary>
-		public IEnumerable<LCTFDevice> AttachedMcfs
+		public static LCTFController Instance
 		{
 			get
 			{
-				return _mcfs.Values;
+				return PrivateInstance;
 			}
 		}
 
 		/// <summary>
-		/// This instance must be referenced first from the main thread. If not, LibUSB can't set up correctly and events from Windows won't work. Dispose this instance when you're done with it.
+		/// Gets all of the currently attached LCTFs.
 		/// </summary>
-		public static McfController Instance
+		public IEnumerable<LCTFDevice> AttachedLCTFs
 		{
 			get
 			{
-				return instance;
+				return this.LCTFs.Values;
 			}
 		}
-		#endregion
 
-		#region Public Methods
-
-		/// <summary>
-		/// Gets the first MCF from the AttachedMcfs IEnumerable.
-		/// </summary>
-		/// <returns>Null if no MCFs are attached. Otherwise the first MCF from the AttachedMcfs IEnumerable.</returns>
-		public LCTFDevice GetFirstMCF()
-		{
-			return AttachedMcfs.FirstOrDefault();
-		}
+		private Dictionary<UsbRegistry, LCTFDevice> LCTFs { get; } = new Dictionary<UsbRegistry, LCTFDevice>();
 
 		/// <summary>
 		/// Disposes the McfController and any McfDevice objects.
 		/// </summary>
 		public void Dispose()
 		{
-			foreach (var mcf in AttachedMcfs)
+			foreach (var mcf in this.AttachedLCTFs)
 			{
 				mcf.Dispose();
 			}
 
-			_usbDeviceNotifier.Enabled = false;
-			_usbDeviceNotifier.OnDeviceNotify -= OnDeviceNotify;
+			this.usbDeviceNotifier.Enabled = false;
+			this.usbDeviceNotifier.OnDeviceNotify -= this.OnDeviceNotify;
 			UsbDevice.Exit();
 		}
 
-		#endregion
-
-		#region Private Methods
+		/// <summary>
+		/// Gets the first MCF from the AttachedMcfs IEnumerable.
+		/// </summary>
+		/// <returns>Null if no MCFs are attached. Otherwise the first MCF from the AttachedMcfs IEnumerable.</returns>
+		public LCTFDevice GetFirstLCTF()
+		{
+			return this.AttachedLCTFs.FirstOrDefault();
+		}
 
 		private void OnDeviceNotify(object sender, DeviceNotifyEventArgs e)
 		{
-			UpdateAttachedDevices();
+			this.UpdateAttachedDevices();
 		}
 
 		private void UpdateAttachedDevices()
 		{
-			var newRegistryEntries = UsbDevice.AllDevices.Where((device) => _usbFinder.Check(device));
+			var newRegistryEntries = UsbDevice.AllDevices.Where((device) => this.usbFinder.Check(device));
 
 			// Add new MCFs
 			foreach (var newRegistryEntry in newRegistryEntries)
 			{
-				var match = _mcfs.Keys.Where((x) => x.SymbolicName.Equals(newRegistryEntry.SymbolicName)).FirstOrDefault();
+				var match = this.LCTFs.Keys.Where((x) => x.SymbolicName.Equals(newRegistryEntry.SymbolicName, StringComparison.InvariantCulture)).FirstOrDefault();
 				if (match == null)
 				{
 					var device = UsbDevice.OpenUsbDevice(x => x.DevicePath == newRegistryEntry.DevicePath);
 					if (device != null)
 					{
-						_mcfs.Add(newRegistryEntry, new LCTFDevice(device));
-						OnMcfAttached?.Invoke();
+						this.LCTFs.Add(newRegistryEntry, new LCTFDevice(device));
+						this.OnMcfAttached?.Invoke();
 					}
 				}
 			}
 
 			// Remove lost MCFs
-			var tempMcfs = _mcfs.Keys.ToList();
+			var tempMcfs = this.LCTFs.Keys.ToList();
 
 			foreach (var registryEntry in tempMcfs)
 			{
-				var match = newRegistryEntries.Where((x) => x.SymbolicName.Equals(registryEntry.SymbolicName)).FirstOrDefault();
+				var match = newRegistryEntries.Where((x) => x.SymbolicName.Equals(registryEntry.SymbolicName, StringComparison.InvariantCulture)).FirstOrDefault();
 				if (match == null)
 				{
-					_mcfs[registryEntry].Dispose();
-					_mcfs.Remove(registryEntry);
-					OnMcfDetached?.Invoke();
+					this.LCTFs[registryEntry].Dispose();
+					this.LCTFs.Remove(registryEntry);
+					this.OnMcfDetached?.Invoke();
 				}
 			}
 		}
-
-		#endregion
 	}
 }
