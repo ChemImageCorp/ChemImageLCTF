@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29728.190
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChemImageLCTF", "ChemImageLCTF\ChemImageLCTF.csproj", "{0BFE7970-384B-48B3-8A81-8AB7A9859116}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0BFE7970-384B-48B3-8A81-8AB7A9859116}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BFE7970-384B-48B3-8A81-8AB7A9859116}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BFE7970-384B-48B3-8A81-8AB7A9859116}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BFE7970-384B-48B3-8A81-8AB7A9859116}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C4096792-FDCF-42BB-890D-0BBDE1E02F49}
+	EndGlobalSection
+EndGlobal
