@@ -47,14 +47,6 @@ namespace ChemImage.LCTF
 		}
 
 		/// <summary>
-		/// Finalizes an instance of the <see cref="LCTFDevice"/> class.
-		/// </summary>
-		~LCTFDevice()
-		{
-			this.usbDevice?.Close();
-		}
-
-		/// <summary>
 		/// Gets the underlying USB DevicePath.
 		/// </summary>
 		public string InstanceId { get; private set; }
@@ -88,16 +80,6 @@ namespace ChemImage.LCTF
 			{
 				return (LCTFState)this.GetByte((byte)CommandIndices.LCTFState);
 			}
-		}
-
-		/// <summary>
-		/// Cleans up USB connections and disposes the object.
-		/// </summary>
-		public void Dispose()
-		{
-			this.interruptReader?.Abort();
-			this.interruptReader?.Dispose();
-			this.usbDevice?.Close();
 		}
 
 		/// <summary>
@@ -137,7 +119,7 @@ namespace ChemImage.LCTF
 			tuneTask = this.WaitForTune(1000);
 			this.SetWavelength(wavelength);
 
-			return await tuneTask;
+			return await tuneTask.ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -178,12 +160,13 @@ namespace ChemImage.LCTF
 				tcs.TrySetResult(lambda);
 			};
 
-			Task.Delay(timeout).ContinueWith((delayTask) =>
+			Task.Delay(timeout).ContinueWith(
+			(delayTask) =>
 			{
 				this.OnError -= errorHandler;
 				this.OnTuningDone -= tuningDoneHandler;
 				tcs.TrySetException(new TimeoutException($"{nameof(this.WaitForTune)} timed out after {timeout}ms"));
-			});
+			}, TaskScheduler.Default);
 
 			return tcs.Task;
 		}

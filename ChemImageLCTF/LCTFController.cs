@@ -24,9 +24,7 @@ namespace ChemImage.LCTF
 	/// <summary>
 	/// Singleton class which handles detecting and connecting to MCFs.
 	/// </summary>
-#pragma warning disable CA1063 // Implement IDisposable Correctly
-	public class LCTFController : IDisposable
-#pragma warning restore CA1063 // Implement IDisposable Correctly
+	public partial class LCTFController
 	{
 		private static readonly LCTFController PrivateInstance = new LCTFController();
 
@@ -86,21 +84,6 @@ namespace ChemImage.LCTF
 		private Dictionary<UsbRegistry, LCTFDevice> LCTFs { get; } = new Dictionary<UsbRegistry, LCTFDevice>();
 
 		/// <summary>
-		/// Disposes the McfController and any McfDevice objects.
-		/// </summary>
-		public void Dispose()
-		{
-			foreach (var mcf in this.AttachedLCTFs)
-			{
-				mcf.Dispose();
-			}
-
-			this.usbDeviceNotifier.Enabled = false;
-			this.usbDeviceNotifier.OnDeviceNotify -= this.OnDeviceNotify;
-			UsbDevice.Exit();
-		}
-
-		/// <summary>
 		/// Gets the first MCF from the AttachedMcfs IEnumerable.
 		/// </summary>
 		/// <returns>Null if no MCFs are attached. Otherwise the first MCF from the AttachedMcfs IEnumerable.</returns>
@@ -124,7 +107,9 @@ namespace ChemImage.LCTF
 				var match = this.LCTFs.Keys.Where((x) => x.SymbolicName.Equals(newRegistryEntry.SymbolicName, StringComparison.InvariantCulture)).FirstOrDefault();
 				if (match == null)
 				{
+#pragma warning disable CA2000 // Dispose objects before losing scope. Can't dispose here because it needs to be used later.
 					var device = UsbDevice.OpenUsbDevice(x => x.DevicePath == newRegistryEntry.DevicePath);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 					if (device != null)
 					{
 						this.LCTFs.Add(newRegistryEntry, new LCTFDevice(device));
