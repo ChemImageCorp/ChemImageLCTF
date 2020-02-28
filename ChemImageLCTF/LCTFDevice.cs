@@ -34,6 +34,11 @@ namespace ChemImage.LCTF
 
 			this.DeviceInfo = this.GetDeviceInfo();
 
+			if (this.DeviceInfo.FirmwareVersion < 107)
+			{
+				throw new NotSupportedException("This library only supports LCTF firmware v1.07 or newer and cannot be used with older versions.");
+			}
+
 			this.WavelengthMin = (int)(this.GetFloat((byte)CommandIndices.WavelengthMin) + 0.5f);
 			this.WavelengthMax = (int)(this.GetFloat((byte)CommandIndices.WavelengthMax) + 0.5f);
 			this.WavelengthStep = (int)(this.GetFloat((byte)CommandIndices.WavelengthStep) + 0.5f);
@@ -44,6 +49,11 @@ namespace ChemImage.LCTF
 			this.interruptReader = this.usbDevice.OpenEndpointReader(ReadEndpointID.Ep02);
 			this.interruptReader.DataReceivedEnabled = true;
 			this.interruptReader.DataReceived += this.Reader_DataReceived;
+
+			// Turn on all the normal features
+			this.SetFilterEnable(true);
+			this.SetAutotune(true);
+			this.SetOUStatus(true);
 		}
 
 		/// <summary>
@@ -185,6 +195,33 @@ namespace ChemImage.LCTF
 			deviceInfo.FirmwareVersion = (ushort)((((bcdVersion >> 8) & 0x00ff) * 100) + (bcdVersion & 0x00ff));
 
 			return deviceInfo;
+		}
+
+		/// <summary>
+		/// Turns the internal voltages on and off. These must be on for the LCTF to function and should only be turned off for testing purposes.
+		/// </summary>
+		/// <param name="status">True to turn on the filter, false to turn off.</param>
+		private void SetFilterEnable(bool status)
+		{
+			this.SetParameter((byte)CommandIndices.FilterEnable, status);
+		}
+
+		/// <summary>
+		/// Turns the autotune function on and off. This will adjust internal voltages to maintain the passband as temperature changes.
+		/// </summary>
+		/// <param name="status">True to turn on autotune, false to turn off.</param>
+		private void SetAutotune(bool status)
+		{
+			this.SetParameter((byte)CommandIndices.AutotuneEnable, status);
+		}
+
+		/// <summary>
+		/// Turns the overdrive function on and off. This allows the filter to tune more quickly and should only be turned off for testing purposes.
+		/// </summary>
+		/// <param name="status">True to turn on overdrive, false to turn off.</param>
+		private void SetOUStatus(bool status)
+		{
+			this.SetParameter((byte)CommandIndices.OverdriveEnable, status);
 		}
 
 		private void Reader_DataReceived(object sender, EndpointDataEventArgs e)

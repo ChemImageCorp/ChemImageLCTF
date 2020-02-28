@@ -82,6 +82,11 @@ namespace ChemImage.LCTF
 		LCTFState = 0x01,
 
 		/// <summary>
+		/// Used to enable and disable auto tuning with changing temperature.
+		/// </summary>
+		AutotuneEnable = 0x03,
+
+		/// <summary>
 		/// Used to get the minimum wavelength of the LCTF.
 		/// </summary>
 		WavelengthMin = 0x10,
@@ -110,5 +115,10 @@ namespace ChemImage.LCTF
 		/// Used to start calibration of the LCTF internal voltages.
 		/// </summary>
 		Calibrate = 0x32,
+
+		/// <summary>
+		/// Used to enable or disable overdrive.
+		/// </summary>
+		OverdriveEnable = 0xF9,
 	}
 }
