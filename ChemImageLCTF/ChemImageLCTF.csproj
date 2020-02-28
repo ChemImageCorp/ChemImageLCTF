@@ -3,6 +3,7 @@
     <TargetFramework>net472</TargetFramework>
     <Authors>ChemImage CIFT</Authors>
     <Company>ChemImage Corporation</Company>
+    <RepositoryUrl>https://github.com/aklein53/ChemImageLCTF</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="LibUsbDotNet" Version="2.2.29" />

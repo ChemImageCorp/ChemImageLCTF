@@ -26,11 +26,7 @@ jobs:
     - name: Pack
       run: dotnet pack --configuration Release --output nupkgs
 
-    - name: Where are we?
-      run: dir
-
-    - name: Add Source
-      run: nuget sources Add -Name "GPR" -Source "https://nuget.pkg.github.com/aklein53/index.json" -Username aklein53 -Password ${{ secrets.GITHUB_TOKEN }}
-
     - name: Push
-      run: nuget push "nupkgs\*.nupkg" -Source "GPR" -SkipDuplicate -NoSymbols -Verbosity detailed
+      run: |
+        nuget sources Add -Name "GPR" -Source "https://nuget.pkg.github.com/aklein53/index.json" -Username aklein53 -Password ${{ secrets.GITHUB_TOKEN }}
+        nuget push nupkgs\*.nupkg -Source "GPR" -SkipDuplicate -NoSymbols -Verbosity detailed
