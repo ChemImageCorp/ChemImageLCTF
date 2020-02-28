@@ -1,6 +1,9 @@
-name: .NET Framework
+name: Build and Deploy
 
-on: [push]
+on:
+  push:
+    branches:
+      - "master"
 
 jobs:
   build:
