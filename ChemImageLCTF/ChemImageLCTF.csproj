@@ -7,6 +7,10 @@
     <Description>Library for controlling ChemImage LCTFs</Description>
     <PackageTags>ChemImage, LCTF</PackageTags>
     <PackageProjectUrl>https://github.com/aklein53/ChemImageLCTF</PackageProjectUrl>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <Version>1.1.0</Version>
+    <PackageReleaseNotes>Added GetCurrentWavelength function.
+Changed State property to GetState function.</PackageReleaseNotes>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="LibUsbDotNet" Version="2.2.29" />
