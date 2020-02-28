@@ -23,12 +23,7 @@ namespace ChemImage.LCTF
 		/// <param name="underlyingWinUsbDevice">The underlying <see cref="UsbDevice"/>.</param>
 		public LCTFDevice(UsbDevice underlyingWinUsbDevice)
 		{
-			if (underlyingWinUsbDevice == null)
-			{
-				throw new ArgumentNullException(nameof(underlyingWinUsbDevice));
-			}
-
-			this.usbDevice = underlyingWinUsbDevice;
+			this.usbDevice = underlyingWinUsbDevice ?? throw new ArgumentNullException(nameof(underlyingWinUsbDevice));
 
 			this.InstanceId = underlyingWinUsbDevice.DevicePath;
 
@@ -82,14 +77,19 @@ namespace ChemImage.LCTF
 		public int WavelengthStep { get; private set; }
 
 		/// <summary>
+		/// Gets the currently tuned wavelength of the LCTF.
+		/// </summary>
+		public LCTFState GetCurrentWavelength()
+		{
+			return (LCTFState)this.GetByte((byte)CommandIndices.SetWavelength);
+		}
+
+		/// <summary>
 		/// Gets the current state of the LCTF.
 		/// </summary>
-		public LCTFState State
+		public LCTFState GetState()
 		{
-			get
-			{
-				return (LCTFState)this.GetByte((byte)CommandIndices.LCTFState);
-			}
+			return (LCTFState)this.GetByte((byte)CommandIndices.LCTFState);
 		}
 
 		/// <summary>
@@ -124,9 +124,7 @@ namespace ChemImage.LCTF
 		/// <returns>The wavelength that was set.</returns>
 		public async Task<int> SetWavelengthAsync(int wavelength)
 		{
-			Task<int> tuneTask = null;
-
-			tuneTask = this.WaitForTune(1000);
+			Task<int> tuneTask = WaitForTune(1000);
 			this.SetWavelength(wavelength);
 
 			return await tuneTask.ConfigureAwait(false);
@@ -187,9 +185,10 @@ namespace ChemImage.LCTF
 		/// <returns>An <see cref="LCTFDeviceInfo"/>.</returns>
 		private LCTFDeviceInfo GetDeviceInfo()
 		{
-			LCTFDeviceInfo deviceInfo = new LCTFDeviceInfo();
-
-			deviceInfo.SerialNumber = this.GetSerial();
+			LCTFDeviceInfo deviceInfo = new LCTFDeviceInfo
+			{
+				SerialNumber = this.GetSerial()
+			};
 
 			var bcdVersion = (ushort)this.usbDevice.Info.Descriptor.BcdDevice;
 			deviceInfo.FirmwareVersion = (ushort)((((bcdVersion >> 8) & 0x00ff) * 100) + (bcdVersion & 0x00ff));
