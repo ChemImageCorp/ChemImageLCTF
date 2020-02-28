@@ -13,20 +13,20 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 2.2.108
+        version: '3.1.100'
 
     - name: Setup Nuget.exe
-      uses: warrenbuckley/Setup-Nuget@v1
+      uses: NuGet/setup-nuget@v1.0.2
+      with:
+        nuget-version: 'latest'
 
     - name: Build with dotnet
       run: dotnet build --configuration Release
 
     - name: Pack
-      run: dotnet pack --configuration Release
+      run: dotnet pack --configuration Release --output nupkgs
 
     - name: Add Source
-      run: |
-        nuget sources add -name "GPR" -Source https://nuget.pkg.github.com/aklein53/index.json -Username aklein53 -Password ${{ secrets.GITHUB_TOKEN }}
-        nuget setApiKey ${{ secrets.NUGET_API_KEY }} -Source "GPR"
+      run: nuget sources Add -Name "GPR" -Source "https://nuget.pkg.github.com/aklein53/index.json" -Username aklein53 -Password ${{ secrets.GITHUB_TOKEN }}
     - name: Push
-      run: nuget push "bin/Release/ChemImageLCTF.1.0.0.nupkg" -Source "GPR" -SkipDuplicate
+      run: nuget push "bin\Release\ChemImageLCTF.1.0.0.nupkg" -Source "GPR" -SkipDuplicate -NoSymbols -Verbosity detailed
