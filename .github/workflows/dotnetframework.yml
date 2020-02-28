@@ -18,4 +18,6 @@ jobs:
     - name: Pack
       run: dotnet pack --configuration Release
     - name: Push
-      run: dotnet nuget push "bin/Release/ChemImageLCTF.1.0.0.nupkg" --source "github" 
+      run: dotnet nuget push "bin/Release/ChemImageLCTF.1.0.0.nupkg" -s "https://nuget.pkg.github.com/aklein53/index.json" -k ${GITHUB_TOKEN}
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
