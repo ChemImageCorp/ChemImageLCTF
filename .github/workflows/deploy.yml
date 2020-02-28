@@ -1,6 +1,6 @@
 name: .NET Framework
 
-on: [push]
+on:
   push:
     branches:
       - "master"
