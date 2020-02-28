@@ -9,13 +9,24 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 2.2.108
+        version: '3.1.100'
+
+    - name: Setup Nuget.exe
+      uses: NuGet/setup-nuget@v1.0.2
+      with:
+        nuget-version: 'latest'
+
     - name: Build with dotnet
       run: dotnet build --configuration Release
+
     - name: Pack
-      run: dotnet pack --configuration Release
+      run: dotnet pack --configuration Release --output nupkgs
+
     - name: Push
-      run: dotnet nuget push "bin/Release/ChemImageLCTF.1.0.0.nupkg" --source "github" 
+      run: |
+        nuget sources Add -Name "GPR" -Source "https://nuget.pkg.github.com/aklein53/index.json" -Username aklein53 -Password ${{ secrets.GITHUB_TOKEN }}
+        nuget push nupkgs\*.nupkg -Source "GPR" -SkipDuplicate -NoSymbols -Verbosity detailed
