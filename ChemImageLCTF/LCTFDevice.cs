@@ -79,9 +79,9 @@ namespace ChemImage.LCTF
 		/// <summary>
 		/// Gets the currently tuned wavelength of the LCTF.
 		/// </summary>
-		public LCTFState GetCurrentWavelength()
+		public int GetCurrentWavelength()
 		{
-			return (LCTFState)this.GetByte((byte)CommandIndices.SetWavelength);
+			return (int)(this.GetFloat((byte)CommandIndices.SetWavelength) + 0.5f);
 		}
 
 		/// <summary>
