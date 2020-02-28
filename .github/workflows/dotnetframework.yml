@@ -25,7 +25,8 @@ jobs:
       run: dotnet pack --configuration Release
 
     - name: Add Source
-      run: nuget sources add -name "GPR" -Source https://nuget.pkg.github.com/aklein53/index.json -Username aklein53 -Password ${{ secrets.GITHUB_TOKEN }}
-
+      run: |
+        nuget sources add -name "GPR" -Source https://nuget.pkg.github.com/aklein53/index.json -Username aklein53 -Password ${{ secrets.GITHUB_TOKEN }}
+        nuget setApiKey ${{ secrets.NUGET_API_KEY }} -Source "GPR"
     - name: Push
       run: nuget push "bin/Release/ChemImageLCTF.1.0.0.nupkg" -Source "GPR" -SkipDuplicate
