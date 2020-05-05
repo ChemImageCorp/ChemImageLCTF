@@ -4,7 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using System.Threading;
 using LibUsbDotNet;
 using LibUsbDotNet.DeviceNotify;
 using LibUsbDotNet.Main;
@@ -47,22 +50,43 @@ namespace ChemImage.LCTF
 			this.UpdateAttachedDevices();
 		}
 
+		private static void CheckForMainThread()
+		{
+			if (Thread.CurrentThread.GetApartmentState() == ApartmentState.STA &&
+				!Thread.CurrentThread.IsBackground && !Thread.CurrentThread.IsThreadPoolThread && Thread.CurrentThread.IsAlive)
+			{
+				MethodInfo correctEntryMethod = Assembly.GetEntryAssembly().EntryPoint;
+				StackTrace trace = new StackTrace();
+				StackFrame[] frames = trace.GetFrames();
+				for (int i = frames.Length - 1; i >= 0; i--)
+				{
+					MethodBase method = frames[i].GetMethod();
+					if (correctEntryMethod == method)
+					{
+						return;
+					}
+				}
+			}
+
+			throw new Exception("The first reference to LCTFController must be on the main thread for USB to function correctly.");
+		}
+
 		/// <summary>
 		/// Event for when an MCF is attached to the computer.
 		/// </summary>
-		public event OnMcfAttachedHandler OnMcfAttached;
+		public static event OnMcfAttachedHandler OnMcfAttached;
 
 		/// <summary>
 		/// Event for when an MCF is detached from the computer.
 		/// </summary>
-		public event OnMcfDetachedHandler OnMcfDetached;
+		public static event OnMcfDetachedHandler OnMcfDetached;
 
 		/// <summary>
 		/// Gets a singleton instance of <see cref="LCTFController"/>
 		/// This instance must be referenced first from the main thread.
 		/// If not, LibUSB can't set up correctly and events from Windows won't work. Dispose this instance when you're done with it.
 		/// </summary>
-		public static LCTFController Instance
+		private static LCTFController Instance
 		{
 			get
 			{
@@ -73,11 +97,11 @@ namespace ChemImage.LCTF
 		/// <summary>
 		/// Gets all of the currently attached LCTFs.
 		/// </summary>
-		public IEnumerable<LCTFDevice> AttachedLCTFs
+		public static IEnumerable<LCTFDevice> AttachedLCTFs
 		{
 			get
 			{
-				return this.LCTFs.Values;
+				return Instance.LCTFs.Values;
 			}
 		}
 
@@ -87,9 +111,9 @@ namespace ChemImage.LCTF
 		/// Gets the first MCF from the AttachedMcfs IEnumerable.
 		/// </summary>
 		/// <returns>Null if no MCFs are attached. Otherwise the first MCF from the AttachedMcfs IEnumerable.</returns>
-		public LCTFDevice GetFirstLCTF()
+		public static LCTFDevice GetFirstLCTF()
 		{
-			return this.AttachedLCTFs.FirstOrDefault();
+			return LCTFController.AttachedLCTFs.FirstOrDefault();
 		}
 
 		private void OnDeviceNotify(object sender, DeviceNotifyEventArgs e)
@@ -113,7 +137,7 @@ namespace ChemImage.LCTF
 					if (device != null)
 					{
 						this.LCTFs.Add(newRegistryEntry, new LCTFDevice(device));
-						this.OnMcfAttached?.Invoke();
+						LCTFController.OnMcfAttached?.Invoke();
 					}
 				}
 			}
@@ -128,7 +152,7 @@ namespace ChemImage.LCTF
 				{
 					this.LCTFs[registryEntry].Dispose();
 					this.LCTFs.Remove(registryEntry);
-					this.OnMcfDetached?.Invoke();
+					LCTFController.OnMcfDetached?.Invoke();
 				}
 			}
 		}
