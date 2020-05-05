@@ -31,5 +31,5 @@ jobs:
 
     - name: Push
       run: |
-        nuget sources Add -Name "GPR" -Source "https://nuget.pkg.github.com/ChemImageFT/index.json" -Username aklein53 -Password ${{ secrets.GITHUB_TOKEN }}
+        nuget sources Add -Name "GPR" -Source "https://nuget.pkg.github.com/ChemImageFT/index.json" -Username ChemImageFT -Password ${{ secrets.GITHUB_TOKEN }}
         nuget push nupkgs\*.nupkg -Source "GPR" -SkipDuplicate -NoSymbols -Verbosity detailed
