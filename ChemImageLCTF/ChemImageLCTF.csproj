@@ -7,12 +7,15 @@
     <Description>Library for controlling ChemImage LCTFs</Description>
     <PackageTags>ChemImage, LCTF</PackageTags>
     <PackageProjectUrl>https://github.com/ChemImageFT/ChemImageLCTF</PackageProjectUrl>
-    <AssemblyVersion>1.2.0.0</AssemblyVersion>
-    <Version>1.2.0</Version>
-    <PackageReleaseNotes>Removed Instance property and made more properties available statically.
-Added exception when LCTFController is not first referenced on main thread.</PackageReleaseNotes>
+    <AssemblyVersion>1.2.1.0</AssemblyVersion>
+    <Version>1.2.1</Version>
+    <PackageReleaseNotes>Added documentation file.</PackageReleaseNotes>
+    <FileVersion>1.2.1.0</FileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>C:\Users\kleina\Source\ChemImageLCTF\ChemImageLCTF\ChemImageLCTF.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DocumentationFile>C:\Users\kleina\Source\ChemImageLCTF\ChemImageLCTF\ChemImageLCTF.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
