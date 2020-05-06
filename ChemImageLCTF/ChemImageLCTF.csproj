@@ -3,10 +3,10 @@
     <TargetFramework>net472</TargetFramework>
     <Authors>ChemImage CIFT</Authors>
     <Company>ChemImage Corporation</Company>
-    <RepositoryUrl>https://github.com/aklein53/ChemImageLCTF</RepositoryUrl>
+    <RepositoryUrl>https://github.com/ChemImageFT/ChemImageLCTF</RepositoryUrl>
     <Description>Library for controlling ChemImage LCTFs</Description>
     <PackageTags>ChemImage, LCTF</PackageTags>
-    <PackageProjectUrl>https://github.com/aklein53/ChemImageLCTF</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/ChemImageFT/ChemImageLCTF</PackageProjectUrl>
     <AssemblyVersion>1.2.0.0</AssemblyVersion>
     <Version>1.2.0</Version>
     <PackageReleaseNotes>Removed Instance property and made more properties available statically.
