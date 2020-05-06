@@ -13,10 +13,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Setup .NET Core
+    - name: Setup .NET Core latest
       uses: actions/setup-dotnet@v1
       with:
-        version: '3.1.100'
         source-url: https://nuget.pkg.github.com/ChemImageFT/index.json
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
@@ -33,5 +32,4 @@ jobs:
       run: dotnet pack --configuration Release --output nupkgs
 
     - name: Push
-      run: |
-        dotnet nuget push nupkgs\*.nupkg --skip-duplicate -n true
+      run: dotnet nuget push nupkgs\*.nupkg --skip-duplicate --no-symbols true
