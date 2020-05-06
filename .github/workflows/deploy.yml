@@ -34,4 +34,4 @@ jobs:
 
     - name: Push
       run: |
-        dotnet nuget push nupkgs\*.nupkg --skip-duplicate -n
+        dotnet nuget push nupkgs\*.nupkg --skip-duplicate -n true
