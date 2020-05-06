@@ -17,6 +17,9 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         version: '3.1.100'
+        source-url: https://nuget.pkg.github.com/usernamecompanyname/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
     - name: Setup Nuget.exe
       uses: NuGet/setup-nuget@v1.0.2
@@ -31,5 +34,4 @@ jobs:
 
     - name: Push
       run: |
-        nuget sources Add -Name "GPR" -Source "https://nuget.pkg.github.com/ChemImageFT/index.json" -Username ChemImageFT -Password ${{ secrets.GITHUB_TOKEN }}
-        nuget push nupkgs\*.nupkg -Source "GPR" -SkipDuplicate -NoSymbols -Verbosity detailed
+        dotnet nuget push nupkgs\*.nupkg --skip-duplicate -n
