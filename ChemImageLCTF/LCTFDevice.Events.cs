@@ -16,7 +16,7 @@ namespace ChemImage.LCTF
 	public partial class LCTFDevice
 	{
 		/// <summary>
-		/// Event for when the MCF is done tuning.
+		/// Event for when the LCTF is done tuning.
 		/// When overdrive is on, this fires after the overdrive delay.
 		/// With overdrive off, it fires as soon as channel voltages are set.
 		/// This event occurs for both lambda tuning and setting voltages.
@@ -25,14 +25,14 @@ namespace ChemImage.LCTF
 		public event OnTuningDoneHandler OnTuningDone;
 
 		/// <summary>
-		/// Event for when the MCF is done calibrating.
-		/// This happens after calibration when the MCF power cycles or a Calibrate command is given.
+		/// Event for when the LCTF is done calibrating.
+		/// This happens after calibration when the LCTF power cycles or a Calibrate command is given.
 		/// <para>This event is called from multiple threads.</para>
 		/// </summary>
 		public event OnCalibrationDoneHandler OnCalibrationDone;
 
 		/// <summary>
-		/// Event for when the MCF changes states.
+		/// Event for when the LCTF changes states.
 		/// <para>This event is called from multiple threads.</para>
 		/// </summary>
 		public event OnStateChangedHandler OnStateChanged;

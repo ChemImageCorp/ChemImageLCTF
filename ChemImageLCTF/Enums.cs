@@ -5,7 +5,7 @@
 namespace ChemImage.LCTF
 {
 	/// <summary>
-	/// States that the MCF can be in.
+	/// States that the LCTF can be in.
 	/// </summary>
 	public enum LCTFState
 	{

@@ -15,17 +15,17 @@ using LibUsbDotNet.Main;
 namespace ChemImage.LCTF
 {
 	/// <summary>
-	/// Handler for when an MCF attaches to the computer.
+	/// Handler for when an LCTF attaches to the computer.
 	/// </summary>
-	public delegate void OnMcfAttachedHandler();
+	public delegate void OnLctfAttachedHandler();
 
 	/// <summary>
-	/// Handler for when an MCF detaches from the computer.
+	/// Handler for when an LCTF detaches from the computer.
 	/// </summary>
-	public delegate void OnMcfDetachedHandler();
+	public delegate void OnLctfDetachedHandler();
 
 	/// <summary>
-	/// Singleton class which handles detecting and connecting to MCFs.
+	/// Singleton class which handles detecting and connecting to LCTFs.
 	/// </summary>
 	public partial class LCTFController
 	{
@@ -42,6 +42,8 @@ namespace ChemImage.LCTF
 
 		private LCTFController()
 		{
+			CheckForMainThread();
+
 			this.usbFinder = new UsbDeviceFinder(new Guid("{d67436ae-96c7-4da3-83c9-322c4ceb41f3}"));
 			this.usbDeviceNotifier = DeviceNotifier.OpenDeviceNotifier();
 			this.usbDeviceNotifier.OnDeviceNotify += this.OnDeviceNotify;
@@ -72,14 +74,14 @@ namespace ChemImage.LCTF
 		}
 
 		/// <summary>
-		/// Event for when an MCF is attached to the computer.
+		/// Event for when an LCTF is attached to the computer.
 		/// </summary>
-		public static event OnMcfAttachedHandler OnMcfAttached;
+		public static event OnLctfAttachedHandler OnLctfAttached;
 
 		/// <summary>
-		/// Event for when an MCF is detached from the computer.
+		/// Event for when an LCTF is detached from the computer.
 		/// </summary>
-		public static event OnMcfDetachedHandler OnMcfDetached;
+		public static event OnLctfDetachedHandler OnLctfDetached;
 
 		/// <summary>
 		/// Gets a singleton instance of <see cref="LCTFController"/>
@@ -108,9 +110,9 @@ namespace ChemImage.LCTF
 		private Dictionary<UsbRegistry, LCTFDevice> LCTFs { get; } = new Dictionary<UsbRegistry, LCTFDevice>();
 
 		/// <summary>
-		/// Gets the first MCF from the AttachedMcfs IEnumerable.
+		/// Gets the first LCTF from the AttachedLCTFs IEnumerable.
 		/// </summary>
-		/// <returns>Null if no MCFs are attached. Otherwise the first MCF from the AttachedMcfs IEnumerable.</returns>
+		/// <returns>Null if no LCTFs are attached. Otherwise the first LCTF from the AttachedMcfs IEnumerable.</returns>
 		public static LCTFDevice GetFirstLCTF()
 		{
 			return LCTFController.AttachedLCTFs.FirstOrDefault();
@@ -125,7 +127,7 @@ namespace ChemImage.LCTF
 		{
 			var newRegistryEntries = UsbDevice.AllDevices.Where((device) => this.usbFinder.Check(device));
 
-			// Add new MCFs
+			// Add new LCTFs
 			foreach (var newRegistryEntry in newRegistryEntries)
 			{
 				var match = this.LCTFs.Keys.Where((x) => x.SymbolicName.Equals(newRegistryEntry.SymbolicName, StringComparison.InvariantCulture)).FirstOrDefault();
@@ -137,12 +139,12 @@ namespace ChemImage.LCTF
 					if (device != null)
 					{
 						this.LCTFs.Add(newRegistryEntry, new LCTFDevice(device));
-						LCTFController.OnMcfAttached?.Invoke();
+						LCTFController.OnLctfAttached?.Invoke();
 					}
 				}
 			}
 
-			// Remove lost MCFs
+			// Remove lost LCTFs
 			var tempMcfs = this.LCTFs.Keys.ToList();
 
 			foreach (var registryEntry in tempMcfs)
@@ -152,7 +154,7 @@ namespace ChemImage.LCTF
 				{
 					this.LCTFs[registryEntry].Dispose();
 					this.LCTFs.Remove(registryEntry);
-					LCTFController.OnMcfDetached?.Invoke();
+					LCTFController.OnLctfDetached?.Invoke();
 				}
 			}
 		}
