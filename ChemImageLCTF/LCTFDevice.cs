@@ -136,8 +136,8 @@ namespace ChemImage.LCTF
 		/// <param name="timeout">The number of milliseconds to wait before timing out.</param>
 		/// <returns>The wavelength/lambda returned from the tuning done event.</returns>
 		/// <exception cref="TimeoutException">Thrown when the elapsed time exceeds the specified timeout.</exception>
-		/// <exception cref="LCTFBusyException">Thrown when the filter sends a busy interrupt to signify that it was busy and can't handle the request at this time.</exception>
-		/// <exception cref="InvalidOperationException">Thrown when the filter throws an error.</exception>
+		/// <exception cref="LCTFBusyException">Thrown when the LCTF sends a busy interrupt to signify that it was busy and can't handle the request at this time.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when the LCTF throws an error.</exception>
 		public Task<int> WaitForTune(int timeout = 30000)
 		{
 			TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();

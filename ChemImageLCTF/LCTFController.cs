@@ -42,35 +42,12 @@ namespace ChemImage.LCTF
 
 		private LCTFController()
 		{
-			CheckForMainThread();
-
 			this.usbFinder = new UsbDeviceFinder(new Guid("{d67436ae-96c7-4da3-83c9-322c4ceb41f3}"));
 			this.usbDeviceNotifier = DeviceNotifier.OpenDeviceNotifier();
 			this.usbDeviceNotifier.OnDeviceNotify += this.OnDeviceNotify;
 			this.usbDeviceNotifier.Enabled = true;
 
 			this.UpdateAttachedDevices();
-		}
-
-		private static void CheckForMainThread()
-		{
-			if (Thread.CurrentThread.GetApartmentState() == ApartmentState.STA &&
-				!Thread.CurrentThread.IsBackground && !Thread.CurrentThread.IsThreadPoolThread && Thread.CurrentThread.IsAlive)
-			{
-				MethodInfo correctEntryMethod = Assembly.GetEntryAssembly().EntryPoint;
-				StackTrace trace = new StackTrace();
-				StackFrame[] frames = trace.GetFrames();
-				for (int i = frames.Length - 1; i >= 0; i--)
-				{
-					MethodBase method = frames[i].GetMethod();
-					if (correctEntryMethod == method)
-					{
-						return;
-					}
-				}
-			}
-
-			throw new Exception("The first reference to LCTFController must be on the main thread for USB to function correctly.");
 		}
 
 		/// <summary>

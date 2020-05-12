@@ -38,12 +38,12 @@ namespace ChemImage.LCTF
 		public event OnStateChangedHandler OnStateChanged;
 
 		/// <summary>
-		/// Event for when the filter has an error. Nothing currently fires this.
+		/// Event for when the LCTF has an error. Nothing currently fires this.
 		/// </summary>
 		public event OnErrorHandler OnError;
 
 		/// <summary>
-		/// Event for when the filter was busy and couldn't handle a command. Usually due to trying to
+		/// Event for when the LCTF was busy and couldn't handle a command. Usually due to trying to
 		/// tune or change voltage during Calibration or Tuning.
 		/// </summary>
 		public event OnBusyHandler OnBusy;

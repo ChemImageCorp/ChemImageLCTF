@@ -13,7 +13,7 @@ namespace ChemImage.LCTF
 	/// <summary>
 	/// An LCTF device that acts as a bandpass filter at a specified wavelength.
 	/// </summary>
-	public partial class LCTFDevice : IDisposable
+	public partial class LCTFDevice
 	{
 		private bool mDisposed = false;
 
