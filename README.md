@@ -1,4 +1,3 @@
-
 # ChemImageLCTF
 
 CI Status: <a href="https://github.com/aklein53/ChemImageLCTF/actions?query=workflow%3ABuild"><img alt="GitHub Actions Build Status" src="https://github.com/aklein53/ChemImageLCTF/workflows/Build/badge.svg"></a>
@@ -91,5 +90,7 @@ namespace HyperspectralImageCapture
 	}
 }
 ```
-## License
+## Licensing
 This project is licensed under the [MIT License](LICENSE). Copyright (c) 2020 ChemImage Corporation.
+LibUsbDotNet is licensed under the [LGPL v3.0 License](https://github.com/LibUsbDotNet/LibUsbDotNet/blob/master/LICENSE). Copyright (c) 2006-2010 Travis Robinson. All rights reserved.
+
