@@ -19,6 +19,9 @@
     <DocumentationFile>C:\Users\kleina\Source\ChemImageLCTF\ChemImageLCTF\ChemImageLCTF.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="ChemImageLCTF.xml" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="LibUsbDotNet" Version="[2.2.29]" />
   </ItemGroup>
   <ItemGroup>
