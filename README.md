@@ -5,7 +5,7 @@ CI Status: <a href="https://github.com/aklein53/ChemImageLCTF/actions?query=work
 ChemImageLCTF is a .NET Framework library that can be used to control ChemImage Liquid Crystal Tunable Filters (LCTFs) over USB. It uses [LibUsbDotNet](https://github.com/LibUsbDotNet/LibUsbDotNet) for the USB communications.
 ## Installation
 ### NuGet Package
-This library is available as a NuGet package and can be installed through the Visual Studio package manager o via the nuget package manager CLI by typing:
+This library is available as a NuGet package and can be installed through the Visual Studio package manager or via the nuget package manager CLI by typing:
 
     nuget install ChemImageLCTF
 ### ChemImage LCTF SDK
@@ -91,6 +91,11 @@ namespace HyperspectralImageCapture
 }
 ```
 ## Licensing
-This project is licensed under the [MIT License](LICENSE). Copyright (c) 2020 ChemImage Corporation.
-LibUsbDotNet is licensed under the [LGPL v3.0 License](https://github.com/LibUsbDotNet/LibUsbDotNet/blob/master/LICENSE). Copyright (c) 2006-2010 Travis Robinson. All rights reserved.
+This project is licensed under the
+[MIT License](LICENSE).
+Copyright (c) 2020 ChemImage Corporation.
+
+LibUsbDotNet is licensed under the
+[LGPL v3.0 License](https://github.com/LibUsbDotNet/LibUsbDotNet/blob/master/LICENSE).
+Copyright (c) 2006-2010 Travis Robinson. All rights reserved.
 
