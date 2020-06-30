@@ -33,3 +33,9 @@ jobs:
       run: |
         nuget sources Add -Name "GPR" -Source "https://nuget.pkg.github.com/ChemImageFT/index.json" -Username ChemImageFT -Password ${{ secrets.GITHUB_TOKEN }}
         nuget push nupkgs\*.nupkg -Source "GPR" -SkipDuplicate -NoSymbols -Verbosity detailed
+
+    - name: Upload nupkg
+      uses: actions/upload-artifact@v2
+      with:
+        name: "nuget package"
+        path: "nupkgs/*.nupkg"
