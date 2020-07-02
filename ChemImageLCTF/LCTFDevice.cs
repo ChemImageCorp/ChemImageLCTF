@@ -79,6 +79,7 @@ namespace ChemImage.LCTF
 		/// <summary>
 		/// Gets the currently tuned wavelength of the LCTF.
 		/// </summary>
+		/// <returns>The current wavelength.</returns>
 		public int GetCurrentWavelength()
 		{
 			return (int)(this.GetFloat((byte)CommandIndices.SetWavelength) + 0.5f);
@@ -87,6 +88,7 @@ namespace ChemImage.LCTF
 		/// <summary>
 		/// Gets the current state of the LCTF.
 		/// </summary>
+		/// <returns>The current state.</returns>
 		public LCTFState GetState()
 		{
 			return (LCTFState)this.GetByte((byte)CommandIndices.LCTFState);
@@ -124,7 +126,7 @@ namespace ChemImage.LCTF
 		/// <returns>The wavelength that was set.</returns>
 		public async Task<int> SetWavelengthAsync(int wavelength)
 		{
-			Task<int> tuneTask = WaitForTune(1000);
+			Task<int> tuneTask = this.WaitForTune(1000);
 			this.SetWavelength(wavelength);
 
 			return await tuneTask.ConfigureAwait(false);
@@ -187,7 +189,7 @@ namespace ChemImage.LCTF
 		{
 			LCTFDeviceInfo deviceInfo = new LCTFDeviceInfo
 			{
-				SerialNumber = this.GetSerial()
+				SerialNumber = this.GetSerial(),
 			};
 
 			var bcdVersion = (ushort)this.usbDevice.Info.Descriptor.BcdDevice;

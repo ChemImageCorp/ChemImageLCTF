@@ -31,8 +31,8 @@ namespace ChemImage.LCTF
 	{
 		private static readonly LCTFController PrivateInstance = new LCTFController();
 
-		private IDeviceNotifier usbDeviceNotifier;
-		private UsbDeviceFinder usbFinder;
+		private readonly IDeviceNotifier usbDeviceNotifier;
+		private readonly UsbDeviceFinder usbFinder;
 
 		// Explicit static constructor to tell C# compiler
 		// not to mark type as beforefieldinit
@@ -61,6 +61,17 @@ namespace ChemImage.LCTF
 		public static event OnLctfDetachedHandler OnLctfDetached;
 
 		/// <summary>
+		/// Gets all of the currently attached LCTFs.
+		/// </summary>
+		public static IEnumerable<LCTFDevice> AttachedLCTFs
+		{
+			get
+			{
+				return Instance.LCTFs.Values;
+			}
+		}
+
+		/// <summary>
 		/// Gets a singleton instance of <see cref="LCTFController"/>
 		/// This instance must be referenced first from the main thread.
 		/// If not, LibUSB can't set up correctly and events from Windows won't work. Dispose this instance when you're done with it.
@@ -70,17 +81,6 @@ namespace ChemImage.LCTF
 			get
 			{
 				return PrivateInstance;
-			}
-		}
-
-		/// <summary>
-		/// Gets all of the currently attached LCTFs.
-		/// </summary>
-		public static IEnumerable<LCTFDevice> AttachedLCTFs
-		{
-			get
-			{
-				return Instance.LCTFs.Values;
 			}
 		}
 

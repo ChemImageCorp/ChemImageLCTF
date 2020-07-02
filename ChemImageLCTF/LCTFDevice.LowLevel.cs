@@ -79,11 +79,9 @@ namespace ChemImage.LCTF
 
 		private void ControlTransfer(ref UsbSetupPacket usbPacket, object buffer, int length, out int transferred)
 		{
-			bool success = false;
-
 			try
 			{
-				success = this.usbDevice.ControlTransfer(ref usbPacket, buffer, length, out transferred);
+				bool success = this.usbDevice.ControlTransfer(ref usbPacket, buffer, length, out transferred);
 
 				if (!success)
 				{
